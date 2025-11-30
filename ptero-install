@@ -1,55 +1,82 @@
 #!/usr/bin/env bash
 set -e
 
+# Colors
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+CYAN="\e[36m"
+RESET="\e[0m"
+
+# Spinner function
 spinner() {
-    local pid=$1
-    local delay=0.1
-    local spinstr='|/-\'
-    while kill -0 $pid 2>/dev/null; do
-        local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
-        local spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\b\b\b\b\b\b"
-    done
-    printf "      \b\b\b\b\b\b"
+  local pid=$1
+  local delay=0.1
+  local spinstr='|/-\'
+  while kill -0 $pid 2>/dev/null; do
+    local temp=${spinstr#?}
+    printf " [%c]  " "$spinstr"
+    spinstr=$temp${spinstr%"$temp"}
+    sleep $delay
+    printf "\b\b\b\b\b\b"
+  done
+  printf "      \b\b\b\b\b\b"
 }
 
-run_with_spinner() {
-    "$@" &> /dev/null &
-    spinner $!
+run_quiet() {
+  "$@" &> /dev/null &
+  spinner $!
 }
 
+# Big ASCII banner animation
+banner() {
+clear
+echo -e "${CYAN}"
+echo "  ____            _             _     _           _    "
+echo " |  _ \ ___  __ _| |_ ___  __ _| |__ (_)_ __ ___ | |_  "
+echo " | |_) / _ \/ _\` | __/ _ \/ _\` | '_ \| | '_ \` _ \| __| "
+echo " |  __/  __/ (_| | ||  __/ (_| | |_) | | | | | | | |_  "
+echo " |_|   \___|\__,_|\__\___|\__,_|_.__/|_|_| |_| |_|\__| "
+echo -e "${YELLOW}"
+echo "                Made By DracoHost"
+echo -e "${RESET}"
+sleep 1
+clear
+}
+
+install_panel() {
+  echo -e "${GREEN}Installing Pterodactyl Panel...${RESET}"
+  run_quiet curl -Lo panel.sh https://raw.githubusercontent.com/pterodactyl/panel/develop/install.sh
+  run_quiet bash panel.sh
+  echo -e "${GREEN}Panel installation finished!${RESET}"
+}
+
+install_wings() {
+  echo -e "${GREEN}Installing Pterodactyl Wings...${RESET}"
+  run_quiet curl -Lo wing.sh https://raw.githubusercontent.com/pterodactyl/wing/main/install.sh
+  run_quiet bash wing.sh
+  echo -e "${GREEN}Wings installation finished!${RESET}"
+}
+
+# Show banner animation
+banner
+
+# Main menu
 while true; do
-    echo "======================================="
-    echo "       Pterodactyl Official Installer  "
-    echo "======================================="
-    echo "1) Install Pterodactyl Panel"
-    echo "2) Install Pterodactyl Wing"
-    echo "0) Exit"
-    echo -n "Enter your choice: "
-    read choice
+  echo -e "${CYAN}==============================================${RESET}"
+  echo -e "${YELLOW}      Pterodactyl Official Installer          ${RESET}"
+  echo -e "${CYAN}==============================================${RESET}"
+  echo -e "${GREEN}1) Install Pterodactyl Panel${RESET}"
+  echo -e "${GREEN}2) Install Pterodactyl Wings${RESET}"
+  echo -e "${RED}0) Exit${RESET}"
+  echo -n -e "${YELLOW}Enter your choice: ${RESET}"
+  read choice
 
-    case $choice in
-        1)
-            echo "Installing Pterodactyl Panel..."
-            # Official panel install script
-            run_with_spinner curl -Lo panel.sh https://raw.githubusercontent.com/pterodactyl/panel/develop/install.sh
-            run_with_spinner bash panel.sh
-            ;;
-        2)
-            echo "Installing Pterodactyl Wing..."
-            # Official wing install script
-            run_with_spinner curl -Lo wing.sh https://raw.githubusercontent.com/pterodactyl/wing/main/install.sh
-            run_with_spinner bash wing.sh
-            ;;
-        0)
-            echo "Exiting..."
-            exit 0
-            ;;
-        *)
-            echo "Invalid choice! Please try again."
-            ;;
-    esac
-    echo ""
+  case $choice in
+    1) install_panel ;;
+    2) install_wings ;;
+    0) echo -e "${RED}Exiting...${RESET}"; exit 0 ;;
+    *) echo -e "${RED}Invalid choice! Try again.${RESET}" ;;
+  esac
+  echo ""
 done
