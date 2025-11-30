@@ -1,117 +1,79 @@
 #!/bin/bash
 
-# ===============================
-# DracoHost Animated Installer
-# ===============================
-
-# ASCII Logo
-function ascii_logo() {
-    logo="
-|  \\/  |  / \\  |_ _| \\ | |  |  \\/  | ____| \\ | | | | |
-| |\\/| | / _ \\  | ||  \\| |  | |\\/| |  _| |  \\| | | | |
-| |  | |/ ___ \\ | || |\\  |  | |  | | |___| |\\  | |_| |
-|_|  |_/_/   \\_\\___|_| \\_|  |_|  |_|_____|_| \\_|\\___/
-"
-    echo "$logo"
-}
-
-# Animated Header
-function animate_header() {
-    header="*** DracoHost Panel Light ***"
-    for ((i=0;i<${#header};i++)); do
-        echo -n "${header:$i:1}"
-        sleep 0.05
+# Spinner function for animations
+spinner() {
+    local pid=$1
+    local delay=0.1
+    local spinstr='|/-\'
+    while kill -0 $pid 2>/dev/null; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
     done
-    echo
+    printf "      \b\b\b\b\b\b"
 }
 
-# Animated Footer
-function animate_footer() {
-    footer="Pterodactyl install by clowner.py"
-    for ((i=0;i<${#footer};i++)); do
-        echo -n "${footer:$i:1}"
-        sleep 0.03
-    done
-    echo
+# Function to run commands silently with spinner
+run_with_spinner() {
+    "$@" &> /dev/null &
+    spinner $!
 }
 
-# Loading animation
-function loading_animation() {
-    echo -n "Processing"
-    for i in {1..5}; do
-        echo -n "."
-        sleep 0.4
-    done
-    echo
-}
-
-# Banner function
-function show_banner() {
-    clear
-    ascii_logo
-    animate_header
-    echo "======================================"
-}
-
-# Main Menu
 while true; do
-    show_banner
+    echo "======================================="
+    echo "      Jishnu Multi-Installer Menu      "
+    echo "======================================="
     echo "1) Install Pterodactyl Panel"
-    echo "2) Install Pterodactyl Wings"
-    echo "3) Install Cloudflare"
-    echo "4) Install Nebula Theme"
+    echo "2) Install Pterodactyl Wing"
+    echo "3) Setup Cloudflare Machine"
+    echo "4) Install Blueprint"
+    echo "5) Install Nebula Theme"
+    echo "6) Install Nebula Theme Plugin Installer"
     echo "0) Exit"
-    echo "======================================"
-    animate_footer
-    echo
-    read -p "Enter your choice [0-4]: " choice
+    echo -n "Enter your choice: "
+    read choice
 
     case $choice in
         1)
-            show_banner
-            loading_animation
-            echo "Launching Pterodactyl Panel installer..."
-            sleep 1
-            sudo bash <(curl -s https://raw.githubusercontent.com/guldkage/Pterodactyl-Installer/main/installer.sh)
-            read -p "Press enter to return to menu..."
+            echo "Installing Pterodactyl Panel..."
+            run_with_spinner git clone https://github.com/pterodactyl/panel.git
+            run_with_spinner bash panel/install.sh
             ;;
         2)
-            show_banner
-            loading_animation
-            echo "Launching Pterodactyl Wings installer..."
-            sleep 1
-            sudo bash <(curl -s https://raw.githubusercontent.com/guldkage/Pterodactyl-Installer/main/installer.sh)
-            read -p "Press enter to return to menu..."
+            echo "Installing Pterodactyl Wing..."
+            run_with_spinner curl -Lo wing.sh https://raw.githubusercontent.com/pterodactyl/wing/main/install.sh
+            run_with_spinner bash wing.sh
             ;;
         3)
-            show_banner
-            loading_animation
-            echo "Installing Cloudflare..."
-            sudo mkdir -p --mode=0755 /usr/share/keyrings >/dev/null 2>&1
-            curl -fsSL https://pkg.cloudflare.com/cloudflare-public-v2.gpg | sudo tee /usr/share/keyrings/cloudflare-public-v2.gpg >/dev/null 2>&1
-            echo 'deb [signed-by=/usr/share/keyrings/cloudflare-public-v2.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list >/dev/null 2>&1
-            sudo apt-get update >/dev/null 2>&1 && sudo apt-get install -y cloudflared >/dev/null 2>&1
-            echo "Cloudflare installed!"
-            read -p "Press enter to return to menu..."
+            echo "Setting up Cloudflare Machine..."
+            run_with_spinner git clone https://github.com/cloudflare/cloudflared.git
+            run_with_spinner bash cloudflared/install.sh
             ;;
         4)
-            show_banner
-            loading_animation
+            echo "Installing Blueprint..."
+            run_with_spinner git clone https://github.com/jishnu/blueprint.git
+            run_with_spinner bash blueprint/setup.sh
+            ;;
+        5)
             echo "Installing Nebula Theme..."
-            git clone https://github.com/username5642/nebula.git nebula >/dev/null 2>&1
-            cd nebula || exit
-            ./install.sh >/dev/null 2>&1 || echo "Run your Nebula install steps here"
-            cd ..
-            echo "Nebula Theme installed!"
-            read -p "Press enter to return to menu..."
+            run_with_spinner git clone https://github.com/jishnu/nebula-theme.git
+            run_with_spinner bash nebula-theme/install.sh
+            ;;
+        6)
+            echo "Installing Nebula Theme Plugin Installer..."
+            run_with_spinner git clone https://github.com/jishnu/nebula-theme-plugin-installer.git
+            run_with_spinner bash nebula-theme-plugin-installer/install.sh
             ;;
         0)
             echo "Exiting..."
             exit 0
             ;;
         *)
-            echo "Invalid option."
-            sleep 1
+            echo "Invalid choice! Please try again."
             ;;
     esac
+    echo ""
 done
+.
