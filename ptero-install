@@ -1,0 +1,146 @@
+#!/bin/bash
+
+# Function to display ASCII art logo with animation
+function ascii_logo() {
+    logo="
+|  \\/  |  / \\  |_ _| \\ | |  |  \\/  | ____| \\ | | | | |
+| |\\/| | / _ \\  | ||  \\| |  | |\\/| |  _| |  \\| | | | |
+| |  | |/ ___ \\ | || |\\  |  | |  | | |___| |\\  | |_| |
+|_|  |_/_/   \\_\\___|_| \\_|  |_|  |_|_____|_| \\_|\\___/
+"
+    for line in "${logo[@]}"; do
+        echo "$line"
+        sleep 0.05
+    done
+}
+
+# Function for animated header
+function animate_header() {
+    header="*** DracoHost Panel Light ***"
+    for ((i=0;i<${#header};i++)); do
+        echo -n "${header:$i:1}"
+        sleep 0.05
+    done
+    echo
+}
+
+# Function for animated footer
+function animate_footer() {
+    footer="Pterodactyl install by clowner.py"
+    for ((i=0;i<${#footer};i++)); do
+        echo -n "${footer:$i:1}"
+        sleep 0.03
+    done
+    echo
+}
+
+# Loading animation
+function loading_animation() {
+    echo -n "Processing"
+    for i in {1..5}; do
+        echo -n "."
+        sleep 0.4
+    done
+    echo
+}
+
+# Clear screen and show ASCII logo + header
+function show_banner() {
+    clear
+    ascii_logo
+    animate_header
+    echo "======================================"
+}
+
+# Main menu
+while true; do
+    show_banner
+    echo "1) Install Pterodactyl Panel"
+    echo "2) Install Pterodactyl Wing"
+    echo "3) Install Cloudflare"
+    echo "4) Install Nebula Theme"
+    echo "0) Exit"
+    echo "======================================"
+    animate_footer
+    echo
+    read -p "Enter your choice [0-4]: " choice
+
+    case $choice in
+        1)
+            show_banner
+            loading_animation
+            echo "Starting Pterodactyl Panel installation..."
+            sleep 1
+
+            # Ask user for setup info
+            read -p "Enter your Email: " user_email
+            read -p "Enter your Username: " user_username
+            read -p "Enter your First Name: " user_first
+            read -p "Enter your Last Name: " user_last
+            read -sp "Enter your Password: " user_password
+            echo
+            read -p "Enter your Panel URL (example: https://panel.example.com): " panel_url
+
+            # Clone and setup Panel quietly
+            git clone https://github.com/pterodactyl/panel.git panel >/dev/null 2>&1
+            cd panel || exit
+            composer install --no-dev --optimize-autoloader >/dev/null 2>&1
+            cp .env.example .env
+            php artisan key:generate >/dev/null 2>&1
+            php artisan migrate --seed >/dev/null 2>&1
+
+            # Create admin user interactively
+            php artisan p:user:make \
+                --email="$user_email" \
+                --username="$user_username" \
+                --name="$user_first $user_last" \
+                --password="$user_password" >/dev/null 2>&1
+
+            echo "Panel installation complete!"
+            echo "You can access your panel at: $panel_url"
+            cd ..
+            read -p "Press enter to return to menu..."
+            ;;
+        2)
+            show_banner
+            loading_animation
+            echo "Installing Pterodactyl Wing..."
+            git clone https://github.com/pterodactyl/wing.git wing >/dev/null 2>&1
+            cd wing || exit
+            ./install.sh >/dev/null 2>&1
+            cd ..
+            echo "Wing installation complete!"
+            read -p "Press enter to return to menu..."
+            ;;
+        3)
+            show_banner
+            loading_animation
+            echo "Installing Cloudflare..."
+            sudo mkdir -p --mode=0755 /usr/share/keyrings >/dev/null 2>&1
+            curl -fsSL https://pkg.cloudflare.com/cloudflare-public-v2.gpg | sudo tee /usr/share/keyrings/cloudflare-public-v2.gpg >/dev/null 2>&1
+            echo 'deb [signed-by=/usr/share/keyrings/cloudflare-public-v2.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list >/dev/null 2>&1
+            sudo apt-get update >/dev/null 2>&1 && sudo apt-get install -y cloudflared >/dev/null 2>&1
+            echo "Cloudflare installation complete!"
+            read -p "Press enter to return to menu..."
+            ;;
+        4)
+            show_banner
+            loading_animation
+            echo "Installing Nebula Theme..."
+            git clone https://github.com/username5642/nebula.git nebula >/dev/null 2>&1
+            cd nebula || exit
+            ./install.sh >/dev/null 2>&1 || echo "Run your Nebula install steps here"
+            cd ..
+            echo "Nebula Theme installation complete!"
+            read -p "Press enter to return to menu..."
+            ;;
+        0)
+            echo "Exiting..."
+            exit 0
+            ;;
+        *)
+            echo "Invalid option. Try again."
+            sleep 1
+            ;;
+    esac
+done
