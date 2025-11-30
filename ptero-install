@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -e
 
-# Spinner function for animations
 spinner() {
     local pid=$1
     local delay=0.1
@@ -15,7 +15,6 @@ spinner() {
     printf "      \b\b\b\b\b\b"
 }
 
-# Function to run commands silently with spinner
 run_with_spinner() {
     "$@" &> /dev/null &
     spinner $!
@@ -23,14 +22,10 @@ run_with_spinner() {
 
 while true; do
     echo "======================================="
-    echo "      Jishnu Multi-Installer Menu      "
+    echo "       Pterodactyl Official Installer  "
     echo "======================================="
     echo "1) Install Pterodactyl Panel"
     echo "2) Install Pterodactyl Wing"
-    echo "3) Setup Cloudflare Machine"
-    echo "4) Install Blueprint"
-    echo "5) Install Nebula Theme"
-    echo "6) Install Nebula Theme Plugin Installer"
     echo "0) Exit"
     echo -n "Enter your choice: "
     read choice
@@ -38,33 +33,15 @@ while true; do
     case $choice in
         1)
             echo "Installing Pterodactyl Panel..."
-            run_with_spinner git clone https://github.com/pterodactyl/panel.git
-            run_with_spinner bash panel/install.sh
+            # Official panel install script
+            run_with_spinner curl -Lo panel.sh https://raw.githubusercontent.com/pterodactyl/panel/develop/install.sh
+            run_with_spinner bash panel.sh
             ;;
         2)
             echo "Installing Pterodactyl Wing..."
+            # Official wing install script
             run_with_spinner curl -Lo wing.sh https://raw.githubusercontent.com/pterodactyl/wing/main/install.sh
             run_with_spinner bash wing.sh
-            ;;
-        3)
-            echo "Setting up Cloudflare Machine..."
-            run_with_spinner git clone https://github.com/cloudflare/cloudflared.git
-            run_with_spinner bash cloudflared/install.sh
-            ;;
-        4)
-            echo "Installing Blueprint..."
-            run_with_spinner git clone https://github.com/jishnu/blueprint.git
-            run_with_spinner bash blueprint/setup.sh
-            ;;
-        5)
-            echo "Installing Nebula Theme..."
-            run_with_spinner git clone https://github.com/jishnu/nebula-theme.git
-            run_with_spinner bash nebula-theme/install.sh
-            ;;
-        6)
-            echo "Installing Nebula Theme Plugin Installer..."
-            run_with_spinner git clone https://github.com/jishnu/nebula-theme-plugin-installer.git
-            run_with_spinner bash nebula-theme-plugin-installer/install.sh
             ;;
         0)
             echo "Exiting..."
@@ -76,4 +53,3 @@ while true; do
     esac
     echo ""
 done
-.
