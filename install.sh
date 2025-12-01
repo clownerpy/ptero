@@ -1,57 +1,87 @@
 #!/bin/bash
-# Unified Pterodactyl Installer with animated menu
 
-GREEN="\e[92m"
-CYAN="\e[96m"
-YELLOW="\e[93m"
-RESET="\e[0m"
+# Function to print text slowly (for animation)
+type_text() {
+    local text="$1"
+    local delay=${2:-0.02} # default 20ms per character
+    for ((i=0; i<${#text}; i++)); do
+        echo -n "${text:$i:1}"
+        sleep $delay
+    done
+    echo
+}
 
-# Simple spinner animation
-spinner() {
+# Function for startup ASCII animation
+startup_animation() {
+    clear
+    lines=(
+"███████╗ ██████╗  ██████╗  ██████╗  ██████╗ ███████╗"
+"██╔════╝ ██╔══██╗██╔═══██╗██╔═══██╗██╔═══██╗██╔════╝"
+"███████╗ ██████╔╝██║   ██║██║   ██║██║   ██║███████╗"
+"╚════██║ ██╔══██╗██║   ██║██║   ██║██║   ██║╚════██║"
+"███████║ ██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝███████║"
+"╚══════╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚══════╝"
+"                       DracoHost"
+"                    Pterodactyl Install"
+    )
+
+    for line in "${lines[@]}"; do
+        type_text "$line" 0.003   # faster per character
+    done
+    echo
+}
+
+# Spinner animation while running commands
+rolling_animation() {
     local pid=$1
     local delay=0.1
     local spinstr='|/-\'
-    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+    while kill -0 $pid 2>/dev/null; do
         local temp=${spinstr#?}
         printf " [%c]  " "$spinstr"
         spinstr=$temp${spinstr%"$temp"}
         sleep $delay
         printf "\b\b\b\b\b\b"
     done
-    printf "      \b\b\b\b\b\b"
+    printf "    \b\b\b\b"
 }
 
-clear
-echo -e "${GREEN}=== PTERODACTYL ALL-IN-ONE INSTALLER ===${RESET}"
+run_with_animation() {
+    echo
+    echo "Running: $1"
+    bash -c "$1" &
+    pid=$!
+    rolling_animation $pid
+    wait $pid
+    echo "Done!"
+    echo
+}
 
+# Start animation
+startup_animation
+
+# Main menu
 while true; do
-    echo -e "${CYAN}Select an option:${RESET}"
+    echo "======================="
+    echo " DracoHost Pterodactyl"
+    echo "======================="
     echo "1) Install Panel"
-    echo "2) Install Wings"
+    echo "2) Install Wing"
     echo "3) Install Cloudflare"
-    echo "0) Exit"
-    read -p "Enter your choice: " option
-
-    case "$option" in
+    echo "4) Exit"
+    echo -n "Choose an option [1-4]: "
+    read choice
+    case $choice in
         1)
-            echo -e "${YELLOW}Installing Panel...${RESET}"
-            bash install-panel.sh &
-            spinner $!
-            echo -e "${GREEN}Panel installation complete!${RESET}"
+            run_with_animation "curl -s https://raw.githubusercontent.com/clownerpy/ptero/main/install-panel.sh | bash"
             ;;
         2)
-            echo -e "${YELLOW}Installing Wings...${RESET}"
-            bash install-wings.sh &
-            spinner $!
-            echo -e "${GREEN}Wings installation complete!${RESET}"
+            run_with_animation "curl -s https://raw.githubusercontent.com/clownerpy/ptero/main/install-wing.sh | bash"
             ;;
         3)
-            echo -e "${YELLOW}Installing Cloudflare...${RESET}"
-            bash install-cloudflare.sh &
-            spinner $!
-            echo -e "${GREEN}Cloudflare setup complete!${RESET}"
+            run_with_animation "curl -s https://raw.githubusercontent.com/clownerpy/ptero/main/install-cloudflare.sh | bash"
             ;;
-        0)
+        4)
             echo "Exiting..."
             exit 0
             ;;
@@ -59,5 +89,4 @@ while true; do
             echo "Invalid option!"
             ;;
     esac
-    echo ""
 done
