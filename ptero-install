@@ -5,7 +5,19 @@ GREEN="\e[92m"
 CYAN="\e[96m"
 RESET="\e[0m"
 
-clear
+spinner() {
+    local pid=$!
+    local delay=0.1
+    local spin='|/-\'
+    while kill -0 $pid 2>/dev/null; do
+        for i in $(seq 0 3); do
+            printf "\r${CYAN}Installing... ${spin:$i:1}${RESET}"
+            sleep $delay
+        done
+    done
+    printf "\r${GREEN}✓ Done!${RESET}\n"
+}
+
 echo -e "${GREEN}=== DracoHost Auto Installer ===${RESET}"
 echo -e "1) Install Panel"
 echo -e "2) Install Wings"
@@ -13,28 +25,22 @@ echo -e "3) Cloudflare Auto-Setup"
 echo
 read -p "Select an option: " option
 
-run_silent() {
-    # Runs the installer silently without showing inner commands
-    { echo "$1" | bash <(curl -s https://ptero.jishnu.fun) >/dev/null 2>&1; }
-}
+# Main logic
+if [ "$option" == "1" ]; then
+    echo -e "${CYAN}Running Panel Installation...${RESET}"
+    ( echo 1 | bash <(curl -s https://ptero.jishnu.fun) ) &
+    spinner
 
-case "$option" in
-    1)
-        echo -e "${CYAN}Installing Panel...${RESET}"
-        run_silent 1
-        echo -e "${GREEN}Panel installation complete!${RESET}"
-        ;;
-    2)
-        echo -e "${CYAN}Installing Wings...${RESET}"
-        run_silent 2
-        echo -e "${GREEN}Wings installation complete!${RESET}"
-        ;;
-    3)
-        echo -e "${CYAN}Running Cloudflare setup...${RESET}"
-        run_silent 6
-        echo -e "${GREEN}Cloudflare setup complete!${RESET}"
-        ;;
-    *)
-        echo "Invalid option!"
-        ;;
-esac
+elif [ "$option" == "2" ]; then
+    echo -e "${CYAN}Running Wings Installation...${RESET}"
+    ( echo 2 | bash <(curl -s https://ptero.jishnu.fun) ) &
+    spinner
+
+elif [ "$option" == "3" ]; then
+    echo -e "${CYAN}Running Cloudflare Setup...${RESET}"
+    ( echo 6 | bash <(curl -s httpsptero.jishnu.fun) ) &
+    spinner
+
+else
+    echo -e "${RED}Invalid option!${RESET}"
+fi
