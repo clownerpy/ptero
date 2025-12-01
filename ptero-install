@@ -1,46 +1,33 @@
 #!/bin/bash
 
-# Colors
-GREEN="\e[92m"
-CYAN="\e[96m"
-RESET="\e[0m"
+installer_url="https://ptero.jishnu.fun"
 
-spinner() {
-    local pid=$!
-    local delay=0.1
-    local spin='|/-\'
-    while kill -0 $pid 2>/dev/null; do
-        for i in $(seq 0 3); do
-            printf "\r${CYAN}Installing... ${spin:$i:1}${RESET}"
-            sleep $delay
-        done
-    done
-    printf "\r${GREEN}✓ Done!${RESET}\n"
+send_option_then_exit() {
+    # Step 1: send the option (1/2/6)
+    echo "$1" | bash <(curl -s "$installer_url")
+
+    # Step 2: when installer finishes, send 0 to exit its menu
+    echo 0 | bash <(curl -s "$installer_url")
 }
 
-echo -e "${GREEN}=== DracoHost Auto Installer ===${RESET}"
-echo -e "1) Install Panel"
-echo -e "2) Install Wings"
-echo -e "3) Cloudflare Auto-Setup"
+clear
+echo "1) Install Panel"
+echo "2) Install Wings"
+echo "3) Cloudflare"
 echo
 read -p "Select an option: " option
 
-# Main logic
-if [ "$option" == "1" ]; then
-    echo -e "${CYAN}Running Panel Installation...${RESET}"
-    ( echo 1 | bash <(curl -s https://ptero.jishnu.fun) ) &
-    spinner
-
-elif [ "$option" == "2" ]; then
-    echo -e "${CYAN}Running Wings Installation...${RESET}"
-    ( echo 2 | bash <(curl -s https://ptero.jishnu.fun) ) &
-    spinner
-
-elif [ "$option" == "3" ]; then
-    echo -e "${CYAN}Running Cloudflare Setup...${RESET}"
-    ( echo 6 | bash <(curl -s httpsptero.jishnu.fun) ) &
-    spinner
-
-else
-    echo -e "${RED}Invalid option!${RESET}"
-fi
+case "$option" in
+    1)
+        send_option_then_exit 1
+        ;;
+    2)
+        send_option_then_exit 2
+        ;;
+    3)
+        send_option_then_exit 6
+        ;;
+    *)
+        echo "Invalid option!"
+        ;;
+esac
