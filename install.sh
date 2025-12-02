@@ -1,92 +1,97 @@
 #!/bin/bash
 
-# Function to print text slowly (for animation)
-type_text() {
-    local text="$1"
-    local delay=${2:-0.02} # default 20ms per character
-    for ((i=0; i<${#text}; i++)); do
-        echo -n "${text:$i:1}"
-        sleep $delay
-    done
-    echo
-}
+# Colors
+R="\e[31m"
+G="\e[32m"
+Y="\e[33m"
+B="\e[34m"
+M="\e[35m"
+C="\e[36m"
+W="\e[37m"
+RESET="\e[0m"
 
-# Function for startup ASCII animation
-startup_animation() {
-    clear
-    lines=(
-"███████╗ ██████╗  ██████╗  ██████╗  ██████╗ ███████╗"
-"██╔════╝ ██╔══██╗██╔═══██╗██╔═══██╗██╔═══██╗██╔════╝"
-"███████╗ ██████╔╝██║   ██║██║   ██║██║   ██║███████╗"
-"╚════██║ ██╔══██╗██║   ██║██║   ██║██║   ██║╚════██║"
-"███████║ ██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝███████║"
-"╚══════╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚══════╝"
-"                       DracoHost"
-"                    Pterodactyl Install"
-    )
+clear
 
-    for line in "${lines[@]}"; do
-        type_text "$line" 0.003   # faster per character
-    done
-    echo
-}
+# ───────────────────────────────────────────────
+#   GRADIENT ANIMATION TITLE
+# ───────────────────────────────────────────────
+title_lines=(
+"██████╗ ████████╗██████╗ ███████╗██████╗  ██████╗ "
+"██╔══██╗╚══██╔══╝██╔══██╗██╔════╝██╔══██╗██╔═══██╗"
+"██████╔╝   ██║   ██████╔╝█████╗  ██████╔╝██║   ██║"
+"██╔══██╗   ██║   ██╔══██╗██╔══╝  ██╔══██╗██║   ██║"
+"██║  ██║   ██║   ██║  ██║███████╗██║  ██║╚██████╔╝"
+"╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ "
+)
 
-# Spinner animation while running commands
-rolling_animation() {
-    local pid=$1
-    local delay=0.1
-    local spinstr='|/-\'
-    while kill -0 $pid 2>/dev/null; do
-        local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
-        spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\b\b\b\b\b\b"
-    done
-    printf "    \b\b\b\b"
-}
+colors=($R $Y $G $C $B $M)
 
-run_with_animation() {
-    echo
-    echo "Running: $1"
-    bash -c "$1" &
-    pid=$!
-    rolling_animation $pid
-    wait $pid
-    echo "Done!"
-    echo
-}
+echo ""
+for i in "${!title_lines[@]}"; do
+    echo -e "${colors[$i]}${title_lines[$i]}${RESET}"
+    sleep 0.08
+done
 
-# Start animation
-startup_animation
+echo -e "${M}           ✨ Ptero Install Script by Clowner ✨${RESET}"
+sleep 1
+clear
 
-# Main menu
+# ───────────────────────────────────────────────
+#   MENU SYSTEM
+# ───────────────────────────────────────────────
+
 while true; do
-    echo "======================="
-    echo " DracoHost Pterodactyl"
-    echo "======================="
-    echo "1) Install Panel"
-    echo "2) Install Wing"
-    echo "3) Install Cloudflare"
-    echo "4) Exit"
-    echo -n "Choose an option [1-4]: "
-    read choice
-    case $choice in
+    echo -e "${B}────────────────────────────────────────────${RESET}"
+    echo -e "           ${M}PTERO INSTALLER MENU${RESET}"
+    echo -e "${B}────────────────────────────────────────────${RESET}"
+    echo -e "${G}1)${RESET} Install Panel"
+    echo -e "${G}2)${RESET} Install Wings"
+    echo -e "${G}3)${RESET} Install Cloudflare Script"
+    echo -e "${G}4)${RESET} Install Blueprint"
+    echo -e "${G}5)${RESET} Install Nebula Theme"
+    echo -e "${R}0)${RESET} Exit"
+    echo -e "${B}────────────────────────────────────────────${RESET}"
+
+    echo ""
+    read -p "$(echo -e "${Y}Choose an option:${RESET} ")" opt
+    clear
+
+    case $opt in
         1)
-            run_with_animation "curl -s https://raw.githubusercontent.com/clownerpy/ptero/main/install-panel.sh | bash"
+            echo -e "${C}Running Panel Installer...${RESET}"
+            bash <(curl -s https://raw.githubusercontent.com/JishnuTheGamer/pterodactyl/main/panel1)
+            echo -e "${G}✔ Panel Installation Completed!${RESET}"
             ;;
         2)
-            run_with_animation "curl -s https://raw.githubusercontent.com/clownerpy/ptero/main/install-wing.sh | bash"
+            echo -e "${C}Running Wings Installer...${RESET}"
+            bash <(curl -s https://raw.githubusercontent.com/JishnuTheGamer/pterodactyl/main/wing-jtg)
+            echo -e "${G}✔ Wings Installation Completed!${RESET}"
             ;;
         3)
-            run_with_animation "curl -s https://raw.githubusercontent.com/clownerpy/ptero/main/install-cloudflare.sh | bash"
+            echo -e "${C}Installing Cloudflare Script...${RESET}"
+            bash <(curl -s https://raw.githubusercontent.com/clownerpy/ptero/main/install-cloudflare.sh)
+            echo -e "${G}✔ Cloudflare Script Installed!${RESET}"
             ;;
         4)
-            echo "Exiting..."
+            echo -e "${C}Installing Blueprint...${RESET}"
+            bash <(curl -s https://raw.githubusercontent.com/hopingboyz/blueprint/main/blueprint-installer.sh)
+            echo -e "${G}✔ Blueprint Installed!${RESET}"
+            ;;
+        5)
+            echo -e "${C}Installing Nebula Theme...${RESET}"
+            bash <(curl -s https://raw.githubusercontent.com/clownerpy/ptero/main/ptero-nebula)
+            echo -e "${G}✔ Nebula Theme Installed!${RESET}"
+            ;;
+        0)
+            echo -e "${R}Exiting installer...${RESET}"
             exit 0
             ;;
         *)
-            echo "Invalid option!"
+            echo -e "${R}✖ Invalid option! Try again.${RESET}"
             ;;
     esac
+
+    echo ""
+    read -p "$(echo -e "${Y}Press ENTER to return to menu...${RESET}")"
+    clear
 done
